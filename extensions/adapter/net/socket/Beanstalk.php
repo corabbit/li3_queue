@@ -61,7 +61,8 @@ class Beanstalk extends \lithium\net\socket\Stream {
 			}
 			$packet = rtrim($data, "\r\n");
 		} else {
-			$packet = stream_get_line($this->_resource, 16384, "\r\n");
+			// $packet = stream_get_line($this->_resource, 16384, "\r\n");
+			$packet = $this->_stream_get_line($this->_resource, 16384, "\r\n");
 		}
 		return $packet;
 	}
@@ -419,6 +420,24 @@ class Beanstalk extends \lithium\net\socket\Stream {
 				$this->_errors[] = $status;
 				return false;
 		}
+	}
+
+	/**
+	 * replace stream_get_line function
+	 * @see http://stackoverflow.com/questions/13476641/how-to-use-fgets-as-stream-get-line-alternative
+	 */
+	protected function _stream_get_line(&$fp, $length, $end) {
+		$buf = 4096;
+		$content = '';
+		while( $part = fgets($fp, $buf) ) {
+			$ind = strpos($part, $end);
+			if( $ind !== false ) {
+				$content .= substr($part, 0, $ind);
+				break;
+			}
+			$content .= $part;
+		}
+		return $content;
 	}
 
 }
